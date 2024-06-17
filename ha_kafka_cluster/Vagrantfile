@@ -1,0 +1,81 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+CLUSTER_BASE_IP = "192.168"
+
+ROUTER_INTERFACES = [
+  {
+    subnet: "subnet60", ip: "#{CLUSTER_BASE_IP}.60.1"
+  },
+  {
+    subnet: "subnet61", ip: "#{CLUSTER_BASE_IP}.61.1"
+  },
+  {
+    subnet: "subnet62", ip: "#{CLUSTER_BASE_IP}.62.1"
+  }
+]
+
+ZOOKEEPER_ENSEMBLE = [{
+    name: "zookeeper1",
+    box: "ubuntu/focal64",
+    memory: 2048,
+    subnet: "subnet60",
+    ip: "#{CLUSTER_BASE_IP}.60.10",
+    ansible_port: 2200
+  },
+  {
+    name: "zookeeper2",
+    box: "ubuntu/focal64",
+    memory: 2048,
+    subnet: "subnet61",
+    ip: "#{CLUSTER_BASE_IP}.61.11",
+    ansible_port: 2201
+  },
+  {
+    name: "zookeeper3",
+    box: "ubuntu/focal64",
+    memory: 2048,
+    subnet: "subnet62",
+    ip: "#{CLUSTER_BASE_IP}.62.12",
+    ansible_port: 2202
+  }]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+
+  # One key for all hosts - See notes#SSH Config
+  config.ssh.insert_key = false
+
+  # Router configuration
+  config.vm.define "router" do |router|
+    router.vm.box = "ubuntu/focal64"
+    router.vm.hostname = "router"
+
+    ROUTER_INTERFACES.each do |interface|
+      router.vm.network "private_network", ip: interface[:ip], virtualbox__intnet: interface[:subnet]
+    end
+
+    router.vm.provider "virtualbox" do |virtualbox|
+      virtualbox.name = "ha_kafka_router"
+      virtualbox.memory = 1024
+    end
+  end
+
+  # Zookeeper ensemble VMs configuration
+  ZOOKEEPER_ENSEMBLE.each do |zookeeper|
+    config.vm.define zookeeper[:name] do |zookeeper_conf|
+      zookeeper_conf.vm.box = zookeeper[:box]
+      zookeeper_conf.vm.hostname = zookeeper[:name]
+
+      zookeeper_conf.vm.network "private_network", ip: zookeeper[:ip], virtualbox__intnet: zookeeper[:subnet]
+      zookeeper_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: zookeeper[:ansible_port]
+
+      zookeeper_conf.vm.provider "virtualbox" do |virtualbox|
+        virtualbox.name = zookeeper[:name]
+        virtualbox.memory = zookeeper[:memory]
+      end
+    end
+  end
+
+end
