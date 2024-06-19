@@ -1,0 +1,43 @@
+---
+- name: Java 17 install and configuration
+  hosts: zookeeper
+  become: true
+  gather_facts: false
+
+  vars:
+    java_download_link: https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz
+    java_download_checksum: sha256:0022753d0cceecacdd3a795dd4cea2bd7ffdf9dc06e22ffd1be98411742fbb44
+    download_dir: /tmp/java
+    java_home: /opt/java
+
+  tasks:
+    - name: Create installation directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ download_dir }}"
+        - "{{ java_home }}"
+
+    - name: Download Java 17
+      ansible.builtin.get_url:
+        url: "{{ java_download_link }}"
+        dest: "{{ download_dir }}/java.tar.gz"
+        checksum: "{{ java_download_checksum }}"
+      register: java_download
+
+    - name: Unarchive Java 17 tar
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "{{ java_download.dest }}"
+        dest: "{{ java_home }}"
+        extra_opts:
+        - "--strip-components=1"
+
+    - name: Setup environment for Java 17
+      template:
+        src: java/envconfig.sh.j2
+        dest: "/etc/profile.d/envconfig.sh"
+        mode: '0755'
+
+...
