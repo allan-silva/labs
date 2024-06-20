@@ -1,0 +1,77 @@
+---
+- name: Install and configure Zookeeper
+  hosts: zookeeper
+  become: true
+  gather_facts: true
+
+  vars:
+    zookeeper_download_link: https://dlcdn.apache.org/zookeeper/zookeeper-3.8.4/apache-zookeeper-3.8.4-bin.tar.gz
+    zookeeper_download_checksum: 4d85d6f7644d5f36d9c4d65e78bd662ab35ebe1380d762c24c12b98af029027eee453437c9245dbdf2b9beb77cd6b690b69e26f91cf9d11b0a183a979c73fa43
+    download_dir: /tmp/zookeeper
+    zookeeper_home: /opt/zookeeper
+    zookeeper_data_dir: /var/lib/zookeeper
+    zookeeper_conf: /opt/zookeeper/conf/zoo.conf
+
+  tasks:
+    - name: Create installation directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ download_dir }}"
+        - "{{ zookeeper_home }}"
+        - "{{ zookeeper_data_dir }}"
+    
+    - name: Download Zookeeper
+      ansible.builtin.get_url:
+        url: "{{ zookeeper_download_link}}"
+        dest: "{{ download_dir }}/apache-zookeeper-3.8.4-bin.tar.gz"
+      register: zookeeper_download
+    
+    - name: Stat file for checksum
+      ansible.builtin.stat:
+        path: "{{ zookeeper_download.dest }}"
+        checksum_algorithm: sha512
+      register: stat
+    
+    - name: Check download integrity
+      ansible.builtin.fail:
+        msg: "Checksum failed {{stat.stat['checksum']}}"
+      when: stat.stat["checksum"] != zookeeper_download_checksum
+
+    - name: Unarchive Zookeeper
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "{{ zookeeper_download.dest }}"
+        dest: "{{ zookeeper_home }}"
+        extra_opts:
+        - "--strip-components=1"
+
+    - name: Define server id
+      template:
+        src: zookeeper/myid.j2
+        dest: "{{ zookeeper_data_dir }}/myid"
+        mode: '0644'
+
+    - name: Create ensembly hostvars list
+      run_once: true
+      ansible.builtin.set_fact:
+        ensemble_hostvars_list: "{{groups['zookeeper']|map('extract', hostvars)|list}}"
+        # myid_list: "{{groups['zookeeper']|map('extract', hostvars, 'myid')|list}}"
+
+    # - name: Add node to ensemble
+    #   ansible.builtin.set_fact:
+    #     ensemble_list: "{{ ensemble_list + [ansible_default_ipv4.address]}}"
+    #     delegate_to: localhost
+
+    - name: Debug ipv4
+      debug:
+        # msg: "{{ipv4_facts.ansible_facts['ansible_default_ipv4'].address}}"
+        msg: |
+          {% for host_vars in ensemble_hostvars_list %}
+
+          server.{{host_vars['myid']}}={{host_vars['ansible_default_ipv4']['address']}}:2888:3888
+
+          {% endfor %}
+      # run_once: true
+...
