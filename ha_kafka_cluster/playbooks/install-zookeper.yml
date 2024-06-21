@@ -9,8 +9,10 @@
     zookeeper_download_checksum: 4d85d6f7644d5f36d9c4d65e78bd662ab35ebe1380d762c24c12b98af029027eee453437c9245dbdf2b9beb77cd6b690b69e26f91cf9d11b0a183a979c73fa43
     download_dir: /tmp/zookeeper
     zookeeper_home: /opt/zookeeper
-    zookeeper_data_dir: /var/lib/zookeeper
-    zookeeper_conf: /opt/zookeeper/conf/zoo.conf
+    zookeeper_data_dir: /var/lib/zookeeper/data
+    zookeeper_log_dir: /var/lib/zookeeper/logs
+    zookeeper_conf_file: /opt/zookeeper/conf/zoo.conf
+    zookeeper_zkEnv_file: "{{zookeeper_home}}/bin/zkEnv.sh"
 
   tasks:
     - name: Create installation directories
@@ -21,6 +23,7 @@
         - "{{ download_dir }}"
         - "{{ zookeeper_home }}"
         - "{{ zookeeper_data_dir }}"
+        - "{{ zookeeper_log_dir }}"
     
     - name: Download Zookeeper
       ansible.builtin.get_url:
@@ -57,21 +60,21 @@
       run_once: true
       ansible.builtin.set_fact:
         ensemble_hostvars_list: "{{groups['zookeeper']|map('extract', hostvars)|list}}"
-        # myid_list: "{{groups['zookeeper']|map('extract', hostvars, 'myid')|list}}"
 
-    # - name: Add node to ensemble
-    #   ansible.builtin.set_fact:
-    #     ensemble_list: "{{ ensemble_list + [ansible_default_ipv4.address]}}"
-    #     delegate_to: localhost
+    - name: Configure environment
+      ansible.builtin.blockinfile:
+        path: "{{zookeeper_zkEnv_file}}"
+        append_newline: true
+        prepend_newline: true
+        block: |
+          export ZOO_LOG_DIR={{zookeeper_log_dir}}
+        state: present
 
-    - name: Debug ipv4
-      debug:
-        # msg: "{{ipv4_facts.ansible_facts['ansible_default_ipv4'].address}}"
-        msg: |
-          {% for host_vars in ensemble_hostvars_list %}
+    - name: Copy Zookeeper configuration
+      template:
+        src: zookeeper/zoo.conf.j2
+        dest: "{{ zookeeper_conf_file }}"
+        mode: '0644'
 
-          server.{{host_vars['myid']}}={{host_vars['ansible_default_ipv4']['address']}}:2888:3888
-
-          {% endfor %}
-      # run_once: true
+    # TODO: Setup systemd
 ...
