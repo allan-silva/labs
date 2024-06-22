@@ -1,0 +1,13 @@
+[Unit]
+Description=Zookeeper Daemon
+
+[Service]
+Type=forking
+WorkingDirectory={{zookeeper_home}}
+ExecStart={{zookeeper_home}}/bin/zkServer.sh start {{zookeeper_home}}/conf/zoo.conf
+ExecStop={{zookeeper_home}}/bin/zkServer.sh stop {{zookeeper_home}}/conf/zoo.conf
+ExecReload={{zookeeper_home}}/bin/zkServer.sh restart {{zookeeper_home}}/conf/zoo.cfg
+
+TimeoutSec=30
+Restart=on-failure
+Environment="JAVA_HOME=/opt/java"
