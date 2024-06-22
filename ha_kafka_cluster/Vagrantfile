@@ -42,6 +42,31 @@ ZOOKEEPER_ENSEMBLE = [{
     ansible_port: 2202
   }]
 
+KAFKA_CLUSTER =[{
+  name: "kafka1",
+  box: "ubuntu/focal64",
+  memory: 8192,
+  subnet: "subnet60",
+  ip: "#{CLUSTER_BASE_IP}.60.20",
+  ansible_port: 2203
+},
+{
+  name: "kafka2",
+  box: "ubuntu/focal64",
+  memory: 8192,
+  subnet: "subnet61",
+  ip: "#{CLUSTER_BASE_IP}.61.21",
+  ansible_port: 2204
+},
+{
+  name: "kafka3",
+  box: "ubuntu/focal64",
+  memory: 8192,
+  subnet: "subnet62",
+  ip: "#{CLUSTER_BASE_IP}.62.22",
+  ansible_port: 2205
+}]
+
 Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
 
   # One key for all hosts - See notes#SSH Config
@@ -74,6 +99,22 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
       zookeeper_conf.vm.provider "virtualbox" do |virtualbox|
         virtualbox.name = zookeeper[:name]
         virtualbox.memory = zookeeper[:memory]
+      end
+    end
+  end
+
+  # Kafka cluster VMs configuration
+  KAFKA_CLUSTER.each do |kafka|
+    config.vm.define kafka[:name] do |kafka_conf|
+      kafka_conf.vm.box = kafka[:box]
+      kafka_conf.vm.hostname = kafka[:name]
+
+      kafka_conf.vm.network "private_network", ip: kafka[:ip], virtualbox__intnet: kafka[:subnet]
+      kafka_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: kafka[:ansible_port]
+
+      kafka_conf.vm.provider "virtualbox" do |virtualbox|
+        virtualbox.name = kafka[:name]
+        virtualbox.memory = kafka[:memory]
       end
     end
   end

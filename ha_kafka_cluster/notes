@@ -1,7 +1,16 @@
 #SSH Config:
 
+Host vagrant*
+  Hostname 127.0.0.1
+  User vagrant
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile ~/.vagrant.d/insecure_private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
 
-Host zookeeper-*
+Host zookeeper*
   Hostname 127.0.0.1
   User vagrant
   UserKnownHostsFile /dev/null
@@ -20,6 +29,17 @@ Host router
   IdentityFile ~/.vagrant.d/insecure_private_key
   IdentitiesOnly yes
   LogLevel FATAL
+
+Host kafka*
+  Hostname 127.0.0.1
+  User vagrant
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile ~/.vagrant.d/insecure_private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+
   
 No wildcard:
 

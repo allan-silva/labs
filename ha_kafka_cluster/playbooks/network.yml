@@ -1,6 +1,6 @@
 ---
-- name: Zookeeper server network configuration
-  hosts: zookeeper
+- name: Hosts network configuration
+  hosts: zookeeper,kafka
   become: yes
   gather_facts: false
 
@@ -26,7 +26,7 @@
       command: "ip route show"
       register: route_table_command
 
-    - name: ">>> Zookeeper default gateway validation"
+    - name: "Host default gateway validation"
       debug:
         msg: "Default gateway {{default_gateway}} validation to {{ inventory_hostname }}"
       changed_when: "default_gateway in route_table_command.stdout"

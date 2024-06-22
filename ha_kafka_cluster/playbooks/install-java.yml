@@ -1,6 +1,6 @@
 ---
 - name: Java 17 install and configuration
-  hosts: zookeeper
+  hosts: zookeeper,kafka
   become: true
   gather_facts: false
 
