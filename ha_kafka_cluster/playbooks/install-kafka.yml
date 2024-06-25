@@ -14,7 +14,8 @@
     kafka_download_checksum: 229ccc5e3e6b3b9845f59f6e829d70711c5a5a2293f32b6bcabc37350666f874bc7d8f08130f712a1b32915205c10f2847f04908c20d5f7fdb4b62d058c9defe
     download_dir: /var/lib/kafka/package
     kafka_home: /opt/kafka
-    systemd_dir: "/etc/systemd/system/"
+    kafka_conf_file: /opt/kafka/config/server.properties
+    systemd_dir: /etc/systemd/system/
 
   tasks:
     - name: Create installation directories
@@ -50,4 +51,14 @@
         extra_opts:
         - "--strip-components=1"
 
+    - name: Create ensembly hostvars list
+      run_once: true
+      ansible.builtin.set_fact:
+        zookeeper_ensemble_ip_list: "{{groups['zookeeper']|map('extract', hostvars)|map(attribute='ansible_default_ipv4.address')|list}}"
+
+    - name: Copy Kafka configuration
+      template:
+        src: kafka/server.properties.j2
+        dest: "{{ kafka_conf_file }}"
+        mode: '0644'
 ...
