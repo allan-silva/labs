@@ -1,0 +1,53 @@
+---
+
+- name: Gather Zookeeper facts
+  hosts: zookeeper
+  gather_facts: true
+
+- name: Install kafka
+  hosts: kafka
+  become: true
+  gather_facts: true
+
+  vars:
+    kafka_download_link: https://archive.apache.org/dist/kafka/3.5.2/kafka_2.13-3.5.2.tgz
+    kafka_download_checksum: 229ccc5e3e6b3b9845f59f6e829d70711c5a5a2293f32b6bcabc37350666f874bc7d8f08130f712a1b32915205c10f2847f04908c20d5f7fdb4b62d058c9defe
+    download_dir: /var/lib/kafka/package
+    kafka_home: /opt/kafka
+    systemd_dir: "/etc/systemd/system/"
+
+  tasks:
+    - name: Create installation directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ download_dir }}"
+        - "{{ kafka_home }}"
+
+    - name: Download Kafka
+      ansible.builtin.get_url:
+        url: "{{ kafka_download_link }}"
+        dest: "{{ download_dir }}/kafka_2.13-3.5.2.tgz"
+      register: kafka_download
+
+    - name: Stat file for checksum
+      ansible.builtin.stat:
+        path: "{{ kafka_download.dest }}"
+        checksum_algorithm: sha512
+      register: stat
+
+    - name: Check download integrity
+      ansible.builtin.fail:
+        msg: "Checksum failed {{stat.stat['checksum']}}"
+      when: stat.stat["checksum"] != kafka_download_checksum
+
+    - name: Unarchive Zookeeper
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "{{ kafka_download.dest }}"
+        dest: "{{ kafka_home }}"
+        extra_opts:
+        - "--strip-components=1"
+
+...
