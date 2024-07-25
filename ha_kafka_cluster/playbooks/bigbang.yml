@@ -2,3 +2,4 @@
 - import_playbook: network.yml
 - import_playbook: install-java.yml
 - import_playbook: install-zookeper.yml
+- import_playbook: install-kafka.yml

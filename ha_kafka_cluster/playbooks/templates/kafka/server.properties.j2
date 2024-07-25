@@ -1,23 +1,3 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-#
-# This configuration file is intended for use in ZK-based mode, where Apache ZooKeeper is required.
-# See kafka.server.KafkaConfig for additional details and defaults
-#
-
 ############################# Server Basics #############################
 
 # The id of the broker. This must be set to a unique integer for each broker.
@@ -35,10 +15,12 @@ broker.id={{broker_id}}
 
 # Listener name, hostname and port the broker will advertise to clients.
 # If not set, it uses the value for "listeners".
-advertised.listeners=INTERNAL://{{ansible_default_ipv4.address}}:9092
+advertised.listeners=PLAINTEXT://{{ansible_default_ipv4.address}}:9092
+
+security.inter.broker.protocol=PLAINTEXT
 
 # Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details
-#listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+listener.security.protocol.map=INTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
 
 # The number of threads that the server uses for receiving requests from the network and sending responses to the network
 num.network.threads=3
@@ -59,7 +41,7 @@ socket.request.max.bytes=104857600
 ############################# Log Basics #############################
 
 # A comma separated list of directories under which to store log files
-log.dirs=/tmp/kafka-logs
+log.dirs={{ logs_dir }}
 
 # The default number of log partitions per topic. More partitions allow greater
 # parallelism for consumption, but this will also result in more files across
@@ -136,3 +118,6 @@ zookeeper.connection.timeout.ms=18000
 # We override this to 0 here as it makes for a better out-of-the-box experience for development and testing.
 # However, in production environments the default value of 3 seconds is more suitable as this will help to avoid unnecessary, and potentially expensive, rebalances during application startup.
 group.initial.rebalance.delay.ms=0
+
+
+broker.rack={{ rack }}

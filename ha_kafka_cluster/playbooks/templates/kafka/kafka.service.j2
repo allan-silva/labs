@@ -1,0 +1,12 @@
+[Unit]
+Description=kafka Daemon
+
+[Service]
+Type=forking
+WorkingDirectory={{kafka_home}}
+ExecStart={{kafka_home}}/bin/kafka-server-start.sh -daemon {{kafka_home}}/config/server.properties
+ExecStop={{kafka_home}}/bin/kafka-server-stop.sh stop {{kafka_home}}/config/server.properties
+
+TimeoutSec=30
+Restart=on-failure
+Environment="JAVA_HOME=/opt/java"

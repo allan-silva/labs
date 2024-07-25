@@ -37,7 +37,7 @@
         path: "{{ zookeeper_download.dest }}"
         checksum_algorithm: sha512
       register: stat
-    
+
     - name: Check download integrity
       ansible.builtin.fail:
         msg: "Checksum failed {{stat.stat['checksum']}}"

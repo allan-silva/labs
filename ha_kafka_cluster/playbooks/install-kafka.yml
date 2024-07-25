@@ -13,6 +13,7 @@
     kafka_download_link: https://archive.apache.org/dist/kafka/3.5.2/kafka_2.13-3.5.2.tgz
     kafka_download_checksum: 229ccc5e3e6b3b9845f59f6e829d70711c5a5a2293f32b6bcabc37350666f874bc7d8f08130f712a1b32915205c10f2847f04908c20d5f7fdb4b62d058c9defe
     download_dir: /var/lib/kafka/package
+    logs_dir: /var/lib/kafka/logs
     kafka_home: /opt/kafka
     kafka_conf_file: /opt/kafka/config/server.properties
     systemd_dir: /etc/systemd/system/
@@ -22,9 +23,11 @@
       file:
         path: "{{ item }}"
         state: directory
+        mode: "0777" # Warning: Security ISSUE
       loop:
         - "{{ download_dir }}"
         - "{{ kafka_home }}"
+        - "{{ logs_dir }}"
 
     - name: Download Kafka
       ansible.builtin.get_url:
@@ -43,7 +46,7 @@
         msg: "Checksum failed {{stat.stat['checksum']}}"
       when: stat.stat["checksum"] != kafka_download_checksum
 
-    - name: Unarchive Zookeeper
+    - name: Unarchive Kafka
       ansible.builtin.unarchive:
         remote_src: true
         src: "{{ kafka_download.dest }}"
@@ -61,4 +64,16 @@
         src: kafka/server.properties.j2
         dest: "{{ kafka_conf_file }}"
         mode: '0644'
+
+    - name: Configure systemd Service
+      template:
+        src: kafka/kafka.service.j2
+        dest: "{{ systemd_dir }}/kafka.service"
+        mode: '0755'
+
+    - name: Enable and start kafka service
+      ansible.builtin.systemd_service:
+        name: kafka.service
+        state: restarted # Required ensure config changes are applied.
+        enabled: true
 ...
