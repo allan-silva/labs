@@ -1,0 +1,36 @@
+---
+- name: PostgreSQL 16 - Install and Configuration
+  hosts: postgreSQL
+  become: true
+  gather_facts: false
+
+  vars:
+    repo_key_dir: /usr/share/postgresql-common/pgdg
+    repo_key_name: apt.postgresql.org.asc
+    repo_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    ubuntu_codename: focal
+
+  tasks:
+    - name: Create installation dirs
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ repo_key_dir }}"
+
+    - name: Download repo key
+      ansible.builtin.get_url:
+        url: "{{ repo_key_url }}"
+        dest: "{{ repo_key_dir }}/{{ repo_key_name }}"
+
+    - name: Configure repo
+      ansible.builtin.apt_repository:
+        filename: pgdg
+        repo: "deb [signed-by={{ repo_key_dir }}/{{ repo_key_name }}] https://apt.postgresql.org/pub/repos/apt {{ ubuntu_codename }}-pgdg main"
+
+    - name: Install PostgreSQL
+      ansible.builtin.apt:
+        name: postgresql-16
+
+
+...

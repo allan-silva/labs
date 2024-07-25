@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+CLUSTER_BASE_IP = "192.168"
+
+POSTGRE_CLUSTER = [{
+    name: "postgre-primary",
+    box: "ubuntu/focal64",
+    memory: 8192,
+    subnet: "subnet60",
+    ip: "#{CLUSTER_BASE_IP}.60.30",
+    ansible_port: 2200
+}]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+
+    POSTGRE_CLUSTER.each do |postgre|
+        config.vm.define postgre[:name] do |postgre_conf|
+            postgre_conf.vm.box = postgre[:box]
+            postgre_conf.vm.hostname = postgre[:name]
+
+            postgre_conf.vm.network "private_network", ip: postgre[:ip], virtualbox__intnet: postgre[:subnet]
+            postgre_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: postgre[:ansible_port]
+
+            postgre_conf.vm.provider "virtualbox" do | virtualbox|
+                virtualbox.name = postgre[:name]
+                virtualbox.memory = postgre[:memory]
+            end
+        end
+    end
+end
+
