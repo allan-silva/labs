@@ -11,7 +11,7 @@ POSTGRE_CLUSTER = [{
     memory: 8192,
     subnet: "subnet60",
     ip: "#{CLUSTER_BASE_IP}.60.30",
-    ansible_port: 2200
+    ansible_port: 3300
 }]
 
 Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
