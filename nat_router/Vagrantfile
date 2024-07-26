@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+BASE_IP = "192.168"
+
+ROUTER_INTERFACES = [
+  {
+    subnet: "subnet60", ip: "#{BASE_IP}.60.1"
+  },
+  {
+    subnet: "subnet61", ip: "#{BASE_IP}.61.1"
+  },
+  {
+    subnet: "subnet62", ip: "#{BASE_IP}.62.1"
+  }
+]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+    config.vm.box = "ubuntu/focal64"
+    config.vm.hostname = "router"
+
+    ROUTER_INTERFACES.each do |interface|
+        config.vm.network "private_network", ip: interface[:ip], virtualbox__intnet: interface[:subnet]
+    end
+
+    config.vm.provider "virtualbox" do |virtualbox|
+        virtualbox.name = "main_router"
+        virtualbox.memory = 2048
+    end
+end

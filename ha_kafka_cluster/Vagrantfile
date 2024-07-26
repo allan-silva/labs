@@ -73,19 +73,19 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
   config.ssh.insert_key = false
 
   # Router configuration
-  config.vm.define "router" do |router|
-    router.vm.box = "ubuntu/focal64"
-    router.vm.hostname = "router"
+  # config.vm.define "router" do |router|
+  #   router.vm.box = "ubuntu/focal64"
+  #   router.vm.hostname = "router"
 
-    ROUTER_INTERFACES.each do |interface|
-      router.vm.network "private_network", ip: interface[:ip], virtualbox__intnet: interface[:subnet]
-    end
+  #   ROUTER_INTERFACES.each do |interface|
+  #     router.vm.network "private_network", ip: interface[:ip], virtualbox__intnet: interface[:subnet]
+  #   end
 
-    router.vm.provider "virtualbox" do |virtualbox|
-      virtualbox.name = "ha_kafka_router"
-      virtualbox.memory = 1024
-    end
-  end
+  #   router.vm.provider "virtualbox" do |virtualbox|
+  #     virtualbox.name = "ha_kafka_router"
+  #     virtualbox.memory = 1024
+  #   end
+  # end
 
   # Zookeeper ensemble VMs configuration
   ZOOKEEPER_ENSEMBLE.each do |zookeeper|
