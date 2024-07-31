@@ -5,6 +5,12 @@
   gather_facts: true
 
   tasks:
+    - name: Install iptables-persistent
+      ansible.builtin.apt:
+        update_cache: true
+        name: iptables-persistent
+        state: present
+
     - name: Enable ip forwarding
       ansible.posix.sysctl:
         name: net.ipv4.ip_forward
@@ -49,4 +55,24 @@
         state: present
       # Get all network interfaces connected to router, except loopback and default interface facing the internet.
       loop: '{{ ansible_interfaces | reject("in", [ansible_default_ipv4.interface,"lo"]) | list }}'
+
+    - name: Set Fact - regular expression to match inet facts
+      ansible.builtin.set_fact:
+        inet_regex: "^({{ansible_interfaces | join('|')}})$"
+    
+    - name: Set Fact - list of inet facts by inet_regex
+      ansible.builtin.set_fact:
+        inet_list: "{{ansible_facts | dict2items | selectattr('key', 'match', inet_regex) | map(attribute='value') | list}}"
+
+    - name: Set Fact - host-only non internal interface by IP.
+      ansible.builtin.set_fact:
+        host_only_interface: "{{ inet_list | selectattr('ipv4.address', 'match', host_only_ip) | map(attribute='device') | first }}"
+      
+    - name: Masquerade host-only interface IP from internal subnets
+      debug:
+        msg: "{{host_only_interface}}"
+
+    - name: Save iptables state
+      ansible.builtin.shell: iptables-save >/etc/iptables/rules.v4
+
 ...

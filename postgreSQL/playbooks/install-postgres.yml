@@ -9,6 +9,13 @@
     repo_key_name: apt.postgresql.org.asc
     repo_key_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     ubuntu_codename: focal
+    pg_home: /etc/postgresql/16/main/
+
+  handlers:
+    - name: Restart PostgreSQL
+      ansible.builtin.systemd_service:
+        name: postgresql
+        state: restarted
 
   tasks:
     - name: Create installation dirs
@@ -31,6 +38,20 @@
     - name: Install PostgreSQL
       ansible.builtin.apt:
         name: postgresql-16
+        state: present
 
+    - name: Copy postgresql.conf
+      copy:
+        src: postgresql.conf
+        dest: "{{ pg_home }}"
+        mode: '0644'
+      notify: Restart PostgreSQL
+
+    - name: Copy pg_hba.conf
+      copy:
+        src: pg_hba.conf
+        dest: "{{ pg_home }}"
+        mode: '0640'
+      notify: Restart PostgreSQL
 
 ...
