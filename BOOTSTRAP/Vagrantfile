@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+CLUSTER_BASE_IP = "192.168"
+
+BOOTSTRAP_CLUSTER = [{
+    name: "bootstrap",
+    box: "ubuntu/focal64",
+    memory: 2048,
+    subnet: "subnet?",
+    ip: "#{CLUSTER_BASE_IP}.?.?",
+    ansible_port: ?
+}]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+
+    BOOTSTRAP_CLUSTER.each do |bootstrap|
+        config.vm.define bootstrap[:name] do |bootstrap_conf|
+            bootstrap_conf.vm.box = bootstrap[:box]
+            bootstrap_conf.vm.hostname = bootstrap[:name]
+
+            bootstrap_conf.vm.network "private_network", ip: bootstrap[:ip], virtualbox__intnet: bootstrap[:subnet]
+            bootstrap_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: bootstrap[:ansible_port]
+
+            bootstrap_conf.vm.provider "virtualbox" do | virtualbox|
+                virtualbox.name = bootstrap[:name]
+                virtualbox.memory = bootstrap[:memory]
+            end
+        end
+    end
+end
+

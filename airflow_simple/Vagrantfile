@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+CLUSTER_BASE_IP = "192.168"
+
+AIRFLOW_CLUSTER = [{
+    name: "airflow-simple",
+    box: "debian/bookworm64",
+    memory: 4096,
+    subnet: "subnet61",
+    ip: "#{CLUSTER_BASE_IP}.61.40",
+    ansible_port: 4400
+}]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+
+    AIRFLOW_CLUSTER.each do |airflow|
+        config.vm.define airflow[:name] do |airflow_conf|
+            airflow_conf.vm.box = airflow[:box]
+            airflow_conf.vm.hostname = airflow[:name]
+
+            airflow_conf.vm.network "private_network", ip: airflow[:ip], virtualbox__intnet: airflow[:subnet]
+            airflow_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: airflow[:ansible_port]
+
+            airflow_conf.vm.provider "virtualbox" do | virtualbox|
+                virtualbox.name = airflow[:name]
+                virtualbox.memory = airflow[:memory]
+            end
+        end
+    end
+end
+

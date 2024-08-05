@@ -1,0 +1,44 @@
+---
+- name: Airflow installation.
+  hosts: airflow-simple
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Install dependencies
+      ansible.builtin.apt:
+        update_cache: yes
+        pkg:
+          - build-essential
+          - apt-utils
+          - ca-certificates
+          - curl
+          - dumb-init
+          - freetds-bin
+          - krb5-user
+          - libgeos-dev
+          - ldap-utils 
+          - libsasl2-2 
+          - libsasl2-modules 
+          - libxmlsec1 
+          - locales 
+          - libffi8 
+          - libldap-2.5-0 
+          - libssl3 
+          - netcat-openbsd
+          - lsb-release 
+          - openssh-client 
+          - python3-selinux 
+          - rsync 
+          - sasl2-bin 
+          - sqlite3 
+          - sudo 
+          - unixodbc
+          - python3-pip
+        state: present
+
+    - name: Install Airflow via PIP
+      ansible.builtin.pip:
+        break_system_packages: true
+        name: apache-airflow==2.9.3
+...

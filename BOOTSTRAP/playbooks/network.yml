@@ -1,0 +1,39 @@
+---
+- name: Hosts network configuration
+  hosts: ?
+  become: yes
+  gather_facts: false
+
+  vars:
+    init_scripts_dir: /opt/initscripts
+
+  tasks:
+    - name: Create init scripts directory
+      file:
+        path: "{{ init_scripts_dir }}"
+        state: directory
+
+    - name: Copy ip default gateway script
+      template:
+        src: "initscripts/set_default_gateway.j2"
+        dest: "{{ init_scripts_dir }}/set_default_gateway.sh"
+        mode: "0755"
+
+    - name: Set default gateway
+      command: "{{ init_scripts_dir }}/set_default_gateway.sh"
+
+    - name: "Get route table"
+      command: "ip route show"
+      register: route_table_command
+
+    - name: "Host default gateway validation"
+      debug:
+        msg: "Default gateway {{default_gateway}} validation to {{ inventory_hostname }}"
+      changed_when: "default_gateway in route_table_command.stdout"
+
+    - name: "Setup cron to set ip default gateway on startup"
+      cron:
+        name: "Setup default ip route gateway"
+        special_time: reboot
+        job: "{{ init_scripts_dir }}/set_default_gateway.sh >> /var/log/cronjob.log 2>&1"
+...
