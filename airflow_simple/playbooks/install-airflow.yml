@@ -5,9 +5,13 @@
   gather_facts: false
 
   tasks:
-    - name: Install dependencies
+    - name: Update APT cache
       ansible.builtin.apt:
         update_cache: yes
+      ignore_errors: true # Warn: this prevents invalid debian cache, who's not necessarily breaks dependencies installation.
+
+    - name: Install dependencies
+      ansible.builtin.apt:
         pkg:
           - build-essential
           - apt-utils
@@ -35,6 +39,7 @@
           - sudo 
           - unixodbc
           - python3-pip
+          - git
         state: present
 
     - name: Install Airflow via PIP

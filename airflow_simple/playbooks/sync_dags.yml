@@ -1,0 +1,26 @@
+---
+- name: Sync Airflow DAGS
+  hosts: airflow-simple
+  # become: yes
+
+  tasks:
+    - name: Register Airflow dags repository
+      ansible.builtin.command: airflow config get-value core dags_folder
+      register: dags_folder_command
+
+    - name: "Host default gateway validation"
+      debug:
+        msg: "Dags folder {{ dags_folder_command.stdout }}"
+
+    - name: Create dags folder
+      ansible.builtin.file:
+        path: "{{ dags_folder_command.stdout }}"
+        state: directory
+
+    - name: Sync Repository
+      ansible.builtin.git:
+        repo: "{{ dags_repository }}"
+        dest: "{{ dags_folder_command.stdout }}"
+        single_branch: yes
+        version: main
+...
