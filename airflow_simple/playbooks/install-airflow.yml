@@ -40,6 +40,7 @@
           - unixodbc
           - python3-pip
           - git
+          - ntp
         state: present
 
     - name: Install Airflow via PIP
