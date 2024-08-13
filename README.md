@@ -1,6 +1,22 @@
 # labs
 Local Labs enhanced by Vagrant and Ansible. Apps and tools installations from scratch to practice configuration and management.
 
+# VMs shared folder
+
+Shared folders can be used to make simple Data Pipelines where Data Storage is not the learning subject.
+
+## Creating folder on Host
+```
+sudo mkdir /var/vms_shared_folder/
+sudo chown -R $USER /var/vms_shared_folder/
+```
+
+## Folder on Guest
+```
+ls /var/labs/
+```
+
+
 # Vagrant misc
 
 ## Bring up the virtual machines
@@ -44,6 +60,8 @@ Host kafka*
 ```
 
 # Routing to VMs:
+
+The `nat_router` has a non-internal Host-Only network interface, to route communication to `nat_router`, create routes bellow on host machine:
 
 ```
 sudo ip route add 192.168.60.0/24 via 192.168.56.4

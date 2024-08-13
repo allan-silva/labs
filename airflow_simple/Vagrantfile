@@ -25,6 +25,8 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
             airflow_conf.vm.network "private_network", ip: airflow[:ip], virtualbox__intnet: airflow[:subnet]
             airflow_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: airflow[:ansible_port]
 
+            airflow_conf.vm.synced_folder "/var/vms_shared_folder/", "/var/labs", mount_options: ["dmode=777", "fmode=777"]
+
             airflow_conf.vm.provider "virtualbox" do | virtualbox|
                 virtualbox.name = airflow[:name]
                 virtualbox.memory = airflow[:memory]
