@@ -1,7 +1,6 @@
 ---
 - name: Sync Airflow DAGS
   hosts: airflow-simple
-  # become: yes
 
   tasks:
     - name: Register Airflow dags repository
@@ -24,4 +23,13 @@
         single_branch: yes
         version: main
         force: yes
+
+    - name: Install DAGs dependencies
+      ansible.builtin.pip:
+        break_system_packages: true
+        requirements: "{{ dags_folder_command.stdout }}/requirements.txt"
+
+    - name: Run DAGs test
+      # TODO: Why it does not work without "/usr/bin/python3 -m"? even when interpreter is set on vars.
+      ansible.builtin.command: "/usr/bin/python3 -m pytest -v {{ dags_folder_command.stdout }}/labs"
 ...

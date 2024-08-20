@@ -1,0 +1,12 @@
+---
+- name: Airflow providers installation.
+  hosts: airflow-simple
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: Install Postgres Airflow provider via PIP
+      ansible.builtin.pip:
+        break_system_packages: true
+        name: apache-airflow-providers-postgres
+...

@@ -1,0 +1,29 @@
+---
+- name: Database provision with default user
+  hosts: postgreSQL
+  become: true
+  gather_facts: false
+
+  vars:
+    pg_peer_superuser: postgres
+    default_user: labsu
+    dbs:
+      - ch4_stock_sense
+
+  tasks:
+    - name: Create database
+      community.postgresql.postgresql_db:
+        name: "{{ item }}"
+      become_user: "{{ pg_peer_superuser }}"
+      loop: "{{ dbs }}"
+
+    - name: Create default user
+      community.postgresql.postgresql_user:
+        db: "{{ item }}"
+        name: "{{default_user}}"
+        password: "{{default_user}}"
+        comment: Labs super user
+        role_attr_flags: SUPERUSER
+      become_user: "{{ pg_peer_superuser }}"
+      loop: "{{ dbs }}"
+...
