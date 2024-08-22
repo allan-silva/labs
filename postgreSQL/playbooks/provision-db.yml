@@ -9,6 +9,7 @@
     default_user: labsu
     dbs:
       - ch4_stock_sense
+      - intgration_tests
 
   tasks:
     - name: Create database

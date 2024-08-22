@@ -8,5 +8,5 @@
     - name: Install Postgres Airflow provider via PIP
       ansible.builtin.pip:
         break_system_packages: true
-        name: apache-airflow-providers-postgres
+        name: apache-airflow-providers-common-sql
 ...

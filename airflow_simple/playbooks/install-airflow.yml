@@ -41,9 +41,15 @@
           - python3-pip
           - git
           - ntp
+          - systemd-timesyncd
         state: present
 
     - name: Install Airflow via PIP
+      ansible.builtin.pip:
+        break_system_packages: true
+        name: apache-airflow==2.9.3
+
+    - name: Install Postgres Airflow provider via PIP
       ansible.builtin.pip:
         break_system_packages: true
         name: apache-airflow==2.9.3

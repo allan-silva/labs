@@ -31,5 +31,5 @@
 
     - name: Run DAGs test
       # TODO: Why it does not work without "/usr/bin/python3 -m"? even when interpreter is set on vars.
-      ansible.builtin.command: "/usr/bin/python3 -m pytest -v {{ dags_folder_command.stdout }}/labs"
+      ansible.builtin.command: "/usr/bin/python3 -m pytest -vv {{ dags_folder_command.stdout }}/labs"
 ...

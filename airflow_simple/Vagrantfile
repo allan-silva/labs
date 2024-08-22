@@ -8,7 +8,8 @@ CLUSTER_BASE_IP = "192.168"
 AIRFLOW_CLUSTER = [{
     name: "airflow-simple",
     box: "debian/bookworm64",
-    memory: 4096,
+    memory: 8192,
+    cpus: 4,
     subnet: "subnet61",
     ip: "#{CLUSTER_BASE_IP}.61.40",
     ansible_port: 4400
@@ -30,6 +31,7 @@ Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
             airflow_conf.vm.provider "virtualbox" do | virtualbox|
                 virtualbox.name = airflow[:name]
                 virtualbox.memory = airflow[:memory]
+                virtualbox.cpus = airflow[:cpus]
             end
         end
     end
