@@ -1,0 +1,51 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_FILE_API_VERSION = "2"
+
+CLUSTER_BASE_IP = "192.168"
+
+BOOTSTRAP_CLUSTER = [{
+    name: "elasticsearch-1",
+    box: "ubuntu/focal64",
+    memory: 8192,
+    subnet: "subnet60",
+    ip: "#{CLUSTER_BASE_IP}.60.50",
+    ansible_port: 5500
+},{
+    name: "elasticsearch-2",
+    box: "ubuntu/focal64",
+    memory: 8192,
+    subnet: "subnet61",
+    ip: "#{CLUSTER_BASE_IP}.61.51",
+    ansible_port: 5501
+},{
+    name: "elasticsearch-3",
+    box: "ubuntu/focal64",
+    memory: 8192,
+    subnet: "subnet62",
+    ip: "#{CLUSTER_BASE_IP}.62.52",
+    ansible_port: 5502
+}]
+
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    config.ssh.insert_key = false
+
+    BOOTSTRAP_CLUSTER.each do |bootstrap|
+        config.vm.define bootstrap[:name] do |bootstrap_conf|
+            bootstrap_conf.vm.box = bootstrap[:box]
+            bootstrap_conf.vm.hostname = bootstrap[:name]
+
+            bootstrap_conf.vm.network "private_network", ip: bootstrap[:ip], virtualbox__intnet: bootstrap[:subnet]
+            bootstrap_conf.vm.network "forwarded_port", id: "ssh", guest: 22, host: bootstrap[:ansible_port]
+
+            bootstrap_conf.vm.synced_folder "/var/vms_shared_folder/elasticsearch", "/var/labs/elasticsearch", mount_options: ["dmode=777", "fmode=777"]
+
+            bootstrap_conf.vm.provider "virtualbox" do | virtualbox|
+                virtualbox.name = bootstrap[:name]
+                virtualbox.memory = bootstrap[:memory]
+            end
+        end
+    end
+end
+

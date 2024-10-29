@@ -1,0 +1,70 @@
+---
+- name: Elasticsearch 8.15.3 - Install and Configuration
+  hosts: elasticsearch
+  become: true
+  gather_facts: true
+
+  vars:
+    elasticsearch_download_link: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.15.3-linux-x86_64.tar.gz
+    elasticsearch_download_checksum: sha512:https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.15.3-linux-x86_64.tar.gz.sha512
+    download_dir: /var/labs/elasticsearch
+    elasticsearch_user: elasticsearch
+
+  tasks:
+    - name: Create installation directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ download_dir }}"
+        - "{{ elasticsearch_home }}"
+
+    - name: Download Elasticsearch 8.15.3
+      ansible.builtin.get_url:
+        url: "{{ elasticsearch_download_link }}"
+        dest: "{{ download_dir }}/elasticsearch.tar.gz"
+        checksum: "{{ elasticsearch_download_checksum }}"
+      register: elasticsearch_download
+
+    - name: Unarchive Elasticsearch 8.15.3 tar
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "{{ elasticsearch_download.dest }}"
+        dest: "{{ elasticsearch_home }}"
+        extra_opts:
+        - "--strip-components=1"
+
+    - name: Configure Elasticsearch
+      template:
+        src: elasticsearch/elasticsearch.yml.j2
+        dest: "{{ elasticsearch_home }}/config/elasticsearch.yml"
+        mode: '0644'
+
+    - name: Create elasticsearch Group
+      ansible.builtin.group:
+        name: "{{ elasticsearch_user }}"
+        system: yes
+
+    - name: Create elasticsearch user
+      ansible.builtin.user:
+        name: "{{ elasticsearch_user }}"
+        system: yes
+        shell: /bin/bash
+        home: "{{ elasticsearch_home }}"
+        createhome: no
+    
+    - name: Change ownership of elasticsearch home
+      ansible.builtin.file:
+        path: "{{ elasticsearch_home }}"
+        owner: "{{ elasticsearch_user }}"
+        state: directory
+        recurse: yes
+    
+    - name: Set Max Map Count
+      sysctl:
+        name: vm.max_map_count
+        value: 262144
+        state: present
+        reload: yes
+
+...

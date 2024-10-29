@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set +e
+
+PATH=/usr/bin
+
+ip route del default via {{ default_gateway }}
+
+max_attempts=10
+attempts=0
+
+# When Vm is stopped using vagrant halt command, the next vagrant up command to start VM reconfigures the network interfaces.
+# Cron runs before network interfaces configuration finishes, so this script will sleep and try again.
+sleep 10
+
+while true; do
+    if ! ip route add default via {{default_gateway}}; then
+        attempts=$((attempts + 1))
+        if [ $attempts -eq $max_attempts ]; then
+            echo "Max attempts reached. Command fails."
+            break
+        fi
+        sleep 3
+    fi
+done
+
+echo "Finish setup default gateway to {{default_gateway}}"
